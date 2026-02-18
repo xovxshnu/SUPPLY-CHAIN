@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEAM DEVICE · SUPPLY CHAIN AUCTION SHOW</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1E90FF;
+  --blue-mid:#3FA9F5;
+  --blue-light:#00BFFF;
+  --blue-pale:#EBF5FF;
+  --gold:#F5C542;
+  --gold-deep:#E6B800;
+  --white:#FFFFFF;
+  --gray-bg:#F7F9FC;
+  --gray-border:#E2EAF3;
+  --gray-mid:#9AAFC7;
+  --black:#111111;
+  --text:#1A2B42;
+  --green:#22c55e;
+  --red:#ef4444;
+  --shadow-sm:0 1px 4px rgba(30,80,140,.08);
+  --shadow-md:0 4px 16px rgba(30,80,140,.12);
+  --radius:8px;
+  --tc:#1E90FF;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html,body{width:100%;min-height:100vh;background:var(--gray-bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif}
+
+/* ═══════════════════════════════════════════════
+   PHASE BAR & ANN BANNER
+═══════════════════════════════════════════════ */
+#phasebar{position:fixed;top:0;left:0;right:0;height:3px;z-index:800;transition:background 1s;background:var(--blue)}
+#ann{position:fixed;top:0;left:0;right:0;z-index:700;padding:11px 20px;min-height:42px;background:#fff;border-bottom:1px solid var(--gray-border);box-shadow:var(--shadow-sm);font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--blue);text-align:center;display:flex;align-items:center;justify-content:center;transform:translateY(-100%);transition:transform .4s var(--ease)}
+#ann.show{transform:translateY(0)}
+
+/* ═══════════════════════════════════════════════
+   FLASH EFFECT
+═══════════════════════════════════════════════ */
+#flash{position:fixed;inset:0;z-index:9000;pointer-events:none;opacity:0;transition:opacity .07s}
+#flash.g{background:rgba(34,197,94,.1)}
+#flash.r{background:rgba(239,68,68,.1)}
+#flash.on{opacity:1}
+
+/* ═══════════════════════════════════════════════
+   MONEY POP (kept functional)
+═══════════════════════════════════════════════ */
+.mpop{position:fixed;z-index:8990;font-family:'DM Mono',monospace;font-weight:500;font-size:24px;pointer-events:none;animation:mpop 1.8s var(--ease) forwards}
+@keyframes mpop{0%{opacity:1;transform:translateY(0) scale(.9)}40%{transform:translateY(-44px) scale(1.08)}100%{opacity:0;transform:translateY(-110px) scale(.9)}}
+
+/* ═══════════════════════════════════════════════
+   BETTING OVERLAY — replaced with minimal banner
+═══════════════════════════════════════════════ */
+#betting-overlay{position:fixed;top:3px;left:0;right:0;z-index:500;pointer-events:none;opacity:0;transition:opacity .4s}
+#betting-overlay.active{opacity:1}
+.bet-ov-bar{background:rgba(245,197,36,.1);border-bottom:1px solid rgba(245,197,36,.25);padding:7px 20px;text-align:center;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold-deep)}
+
+/* ═══════════════════════════════════════════════
+   APP CONTAINER
+═══════════════════════════════════════════════ */
+#app{position:relative;z-index:10;min-height:100vh;padding:54px 14px 24px;
+  padding-bottom: 60px;
+display:flex;flex-direction:column;gap:10px;max-width:520px;margin:0 auto}
+
+/* ═══════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;border:none;border-radius:var(--radius);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;letter-spacing:.3px;transition:all .2s var(--ease)}
+.btn:active{transform:scale(.97)!important}
+.btn-gold{background:var(--gold);color:var(--black);box-shadow:0 2px 8px rgba(245,197,36,.3)}
+.btn-gold:hover{background:#f0be30}
+.btn-full{width:100%}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════ */
+.hdr{background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-sm);transition:border-color .4s,box-shadow .4s}
+.hdr.active-spotlight{border-color:var(--blue);box-shadow:0 4px 20px rgba(30,144,255,.15)}
+.team-name{font-size:clamp(22px,5vw,32px);font-weight:800;letter-spacing:-.5px;color:var(--tc);transition:color .4s}
+.team-money{font-family:'DM Mono',monospace;font-size:clamp(20px,4.5vw,28px);color:var(--gold-deep);font-weight:500;transition:all .4s}
+.team-stats{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gray-mid);text-transform:uppercase;margin-top:2px}
+
+/* ═══════════════════════════════════════════════
+   PHASE INDICATOR
+═══════════════════════════════════════════════ */
+.phase-ind{padding:9px 14px;border-radius:var(--radius);display:flex;align-items:center;gap:10px;transition:all .4s;background:var(--blue-pale);border:1px solid rgba(30,144,255,.2)}
+.ph-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:phdot 1.5s ease-in-out infinite}
+@keyframes phdot{0%,100%{opacity:1}50%{opacity:.3}}
+.ph-lbl{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--blue);text-transform:uppercase}
+.ph-sub{font-size:13px;font-weight:600;flex:1;text-align:right;color:var(--gray-mid)}
+
+/* ═══════════════════════════════════════════════
+   TIMER PANEL
+═══════════════════════════════════════════════ */
+.timer-panel{background:#fff;border:1.5px solid var(--gray-border);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow-sm);transition:border-color .4s}
+.t-lbl{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--gray-mid);text-transform:uppercase;margin-bottom:4px}
+.t-num{font-family:'DM Mono',monospace;font-weight:500;font-size:clamp(64px,16vw,88px);line-height:1;color:var(--blue);transition:color .3s}
+.t-num.warn{color:var(--gold-deep)}
+.t-num.dang{color:var(--red);animation:tpulse .5s ease-in-out infinite}
+.t-status{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gray-mid);text-transform:uppercase;margin-top:4px;transition:.3s}
+@keyframes tpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* ═══════════════════════════════════════════════
+   QUESTION CARD
+═══════════════════════════════════════════════ */
+.q-card{background:#fff;border:1.5px solid var(--gray-border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);transition:border-color .4s}
+.q-card.ph-betting{border-color:rgba(245,197,36,.45)}
+.q-card.ph-answering{border-color:var(--blue);animation:revealcard .4s var(--ease)}
+.q-card.ph-result{border-color:var(--gray-border)}
+@keyframes revealcard{0%{transform:translateY(4px);opacity:.6}100%{transform:translateY(0);opacity:1}}
+.q-num{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--blue);text-transform:uppercase;margin-bottom:10px}
+.q-text{font-size:clamp(15px,3.5vw,19px);font-weight:700;line-height:1.45;color:var(--black)}
+
+/* Options Locked (betting phase) */
+.opts-locked{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:22px;border-radius:var(--radius);background:var(--gray-bg);border:1.5px dashed var(--gray-border);margin-top:14px}
+.lock-icon{font-size:32px}
+.lock-txt{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--gold-deep);text-transform:uppercase}
+.lock-sub{font-size:13px;font-weight:500;color:var(--gray-mid);text-align:center;line-height:1.5}
+
+/* Options list (answering + result) */
+.opts-list{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+.qopt{padding:12px 14px;border-radius:var(--radius);border:1.5px solid var(--gray-border);background:#fff;font-size:clamp(13px,3vw,16px);font-weight:600;display:flex;gap:10px;align-items:center;transition:all .2s;animation:optin .25s both;cursor:pointer;width:100%;text-align:left;color:var(--text)}
+.qopt:hover:not(:disabled){background:var(--blue-pale);border-color:var(--blue)}
+.qopt:disabled{cursor:not-allowed}
+.qopt.sel{background:var(--blue-pale);border-color:var(--blue);color:var(--blue)}
+.qopt.cr{background:rgba(34,197,94,.08);border-color:var(--green);color:#16a34a;cursor:default}
+.qopt.wr{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.3);color:var(--red);cursor:default}
+@keyframes optin{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.oltr{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:var(--blue);min-width:20px}
+.qopt.sel .oltr{color:var(--blue)}
+.qopt.cr .oltr{color:var(--green)}
+.qopt.wr .oltr{color:var(--red)}
+
+/* ═══════════════════════════════════════════════
+   BET PANEL
+═══════════════════════════════════════════════ */
+.bet-panel{background:#fff;border:1.5px solid rgba(245,197,36,.35);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.bet-ttl{font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--gold-deep);text-transform:uppercase;margin-bottom:14px}
+.bet-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.bet-preset{padding:9px 6px;border-radius:var(--radius);border:1.5px solid var(--gray-border);background:var(--gray-bg);cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--text);text-align:center;transition:.2s}
+.bet-preset:hover{background:rgba(245,197,36,.08);border-color:rgba(245,197,36,.4);color:var(--gold-deep)}
+.bet-preset.on{background:rgba(245,197,36,.12);border-color:var(--gold-deep);color:var(--gold-deep)}
+.bet-input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.bet-input{background:var(--gray-bg);border:1.5px solid rgba(245,197,36,.3);border-radius:var(--radius);padding:11px 14px;color:var(--gold-deep);font-family:'DM Mono',monospace;font-size:22px;font-weight:500;width:100%;outline:none;transition:.2s;text-align:center}
+.bet-input:focus{border-color:var(--gold-deep);background:#fff}
+.bet-err{color:var(--red);font-size:11px;font-weight:700;min-height:14px;margin-bottom:6px;text-align:center}
+
+/* Bet submitted state */
+.bet-submitted{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px;border-radius:var(--radius);background:rgba(34,197,94,.06);border:1.5px solid rgba(34,197,94,.25)}
+
+/* ═══════════════════════════════════════════════
+   ANSWER PANEL
+═══════════════════════════════════════════════ */
+.ans-panel{background:#fff;border:1.5px solid rgba(30,144,255,.2);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.ans-ttl{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:12px}
+.locked-msg{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;text-align:center}
+.locked-msg .icon{font-size:32px}
+
+/* ═══════════════════════════════════════════════
+   RESULT BANNER
+═══════════════════════════════════════════════ */
+.result-banner{padding:18px;border-radius:var(--radius);text-align:center;animation:resin .4s var(--ease)}
+@keyframes resin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.result-banner.win{background:rgba(34,197,94,.06);border:1.5px solid rgba(34,197,94,.3)}
+.result-banner.lose{background:rgba(239,68,68,.05);border:1.5px solid rgba(239,68,68,.25)}
+.result-verdict{font-size:44px;font-weight:800;letter-spacing:-1px}
+.result-money{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin-top:4px}
+
+/* ═══════════════════════════════════════════════
+   WAITING CARD
+═══════════════════════════════════════════════ */
+.waiting-card{background:#fff;border:1px solid var(--gray-border);border-radius:var(--radius);padding:28px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:var(--shadow-sm)}
+.waiting-icon{font-size:40px}
+.waiting-txt{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--gray-mid);text-transform:uppercase}
+
+/* ═══════════════════════════════════════════════
+   WINNER PANEL
+═══════════════════════════════════════════════ */
+#winner-panel{text-align:center;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;background:#fff;border-radius:var(--radius);border:1px solid var(--gray-border);box-shadow:var(--shadow-sm)}
+.w-trophy{font-size:64px;animation:trophybob 2s ease-in-out infinite}
+@keyframes trophybob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+/* Footer */
+/* FIXED BOTTOM FOOTER */
+
+.bottom-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #1E90FF;
+  color: #fff;
+  padding: 12px 20px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  z-index: 1000;
+}
+
+.footer-content {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.footer-icons {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-icons a {
+  color: #fff;
+  font-size: 16px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.footer-icons a:hover {
+  transform: scale(1.2);
+  opacity: 0.85;
+}
+
+
+</style>
+</head>
+<body>
+<!-- Minimal betting indicator (replaces cinematic overlay) -->
+<div id="betting-overlay">
+  <div class="bet-ov-bar">⏳ BETTING IN PROGRESS — Place your bet below</div>
+</div>
+
+<div id="phasebar"></div>
+<div id="ann"></div>
+<div id="flash"></div>
+
+<div id="app">
+  <!-- Header -->
+  <div class="hdr">
+    <div>
+      <div class="team-name" id="team-name" style="color:var(--tc)">Loading...</div>
+      <div class="team-stats" id="team-stats">W: 0 · L: 0</div>
+    </div>
+    <div class="team-money" id="team-money">₹—</div>
+  </div>
+
+  <!-- Phase Indicator -->
+  <div class="phase-ind" id="phase-ind">
+    <div class="ph-dot" id="ph-dot"></div>
+    <div class="ph-lbl" id="ph-lbl">Connecting...</div>
+    <div class="ph-sub" id="ph-sub"></div>
+  </div>
+
+  <!-- Timer -->
+  <div class="timer-panel">
+    <div class="t-lbl">Time Remaining</div>
+    <div class="t-num" id="t-num">--</div>
+    <div class="t-status" id="t-status">Waiting</div>
+  </div>
+
+  <!-- Main Content (dynamically rendered) -->
+  <div id="main-content"></div>
+  
+  
+  <footer class="bottom-footer">
+  <div class="footer-content">
+    <span>Designed by <strong>@codeTocompany</strong></span>
+
+    <div class="footer-icons">
+      <a href="https://instagram.com/code_to_company" target="_blank">📸</a>
+      <a href="email: codetocompany8@gmail.com">📧</a>
+      <a href="tel:8438755662">📞</a>
+    </div>
+  </div>
+</footer>
+
+  </div>
+</footer>
+
+  </div>
+</footer>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({apiKey:"AIzaSyCSyzYtCd-uiolBucZnncuIWpnE5mPG9Cs",authDomain:"logistics-auction-show.firebaseapp.com",databaseURL:"https://logistics-auction-show-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"logistics-auction-show",storageBucket:"logistics-auction-show.firebasestorage.app",messagingSenderId:"596983567254",appId:"1:596983567254:web:91f5b863db7464886503b7"});
+const DB=firebase.database(),GREF=DB.ref('gameState');
+
+// ── TEAM IDENTITY ──────────────────────────────
+const params=new URLSearchParams(location.search);
+let myName=params.get('team')||localStorage.getItem('LAS_TEAM')||'';
+if(myName)localStorage.setItem('LAS_TEAM',myName);
+else{document.getElementById('main-content').innerHTML='<div class="waiting-card"><div class="waiting-icon">⚠️</div><div class="waiting-txt">No Team Assigned</div><div style="font-size:14px;font-weight:500;color:var(--gray-mid)">Please spin</div><a href="index.html" style="font-size:12px;font-weight:700;color:var(--blue);letter-spacing:1px;text-decoration:none">← Back to Spin</a></div>';document.getElementById('team-name').textContent='NO TEAM';}
+
+const TEAM_COLORS=['#1E90FF','#E6B800','#3FA9F5','#00BFFF','#1A7DE8','#F5C542','#4DB8FF','#0A7AC7','#2AA0E0','#6BBFE0'];
+/* Currency: Indian Rupee */
+const $m=v=>'₹'+Number(v||0).toLocaleString('en-IN');
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const PCOLS={lobby:'#1E90FF',spin:'#1E90FF',betting:'#E6B800',answering:'#1E90FF',result:'#1E90FF',reveal:'#E6B800'};
+
+let ST={},prevVer=null,hasBet=false,hasAns=false,myBet=0,lastResTs=0,prevMoney=null,prevPhase=null;
+
+// ── EFFECTS ────────────────────────────────────
+function flash(t){const e=document.getElementById('flash');e.className=t+' on';setTimeout(()=>e.classList.remove('on'),200);}
+function moneyPop(amount,correct){
+  const pop=document.createElement('div');pop.className='mpop';
+  const hdr=document.getElementById('team-money').getBoundingClientRect();
+  pop.style.cssText=`left:${hdr.left}px;top:${hdr.top}px;color:${correct?'var(--green)':'var(--red)'}`;
+  pop.textContent=(correct?'+':'-')+$m(amount);
+  document.body.appendChild(pop);setTimeout(()=>pop.remove(),2100);
+}
+// ── ANN ────────────────────────────────────────
+let annT=null;
+function showAnn(txt){
+  if(!txt)return;
+  const el=document.getElementById('ann');
+  el.textContent=txt;el.classList.add('show');
+  clearTimeout(annT);annT=setTimeout(()=>el.classList.remove('show'),5500);
+  // Show broadcast popup overlay if available
+  if(window._showBroadcastModal) window._showBroadcastModal(txt);
+}
+// ── PHASE BAR ──────────────────────────────────
+function setPhasebar(p){const c=PCOLS[p]||'#1E90FF';document.getElementById('phasebar').style.background=c;}
+// ── PHASE INDICATOR ────────────────────────────
+const PINFO={
+  lobby:{l:'LOBBY',c:'#1E90FF',s:'Waiting for show to start'},
+  spin:{l:'TEAM SPIN',c:'#1E90FF',s:'Spin the wheel to join'},
+  betting:{l:'BETTING OPEN',c:'#E6B800',s:'Place your bet now!'},
+  answering:{l:'ANSWERING',c:'#1E90FF',s:'Active team is answering'},
+  result:{l:'RESULT',c:'#1E90FF',s:'Round complete'},
+  reveal:{l:'CHAMPION',c:'#E6B800',s:'Game over!'}
+};
+function updatePhaseInd(st){
+  const p=st.phase;const{l,c,s}=PINFO[p]||{l:p.toUpperCase(),c:'#1E90FF',s:''};
+  document.getElementById('ph-dot').style.background=c;
+  document.getElementById('ph-lbl').textContent=l;document.getElementById('ph-lbl').style.color=c;
+  const psub=p==='answering'&&st.activeTeam===myName?'⚡ YOUR TURN!':p==='betting'?'Read question → Place bet':s;
+  document.getElementById('ph-sub').textContent=psub;
+  const ind=document.getElementById('phase-ind');
+  ind.style.background=c+'18';ind.style.borderColor=c+'30';
+}
+// ── TIMER ─────────────────────────────────────
+function renderTimer(st){
+  const el=document.getElementById('t-num'),es=document.getElementById('t-status');if(!el)return;
+  let rem=st.timerRemaining||0;
+  if(st.timerRunning&&st.timerStartedAt)rem=Math.max(0,(st.timerRemaining||0)-(Date.now()-st.timerStartedAt)/1000);
+  const s=Math.ceil(rem);
+  el.textContent=s>0?String(s).padStart(2,'0'):'00';
+  el.className='t-num'+(s<=3&&s>0?' dang':s<=5&&s>0?' warn':'');
+  if(es){es.textContent=st.timerRunning?'● Running':'■ Stopped';es.style.color=st.timerRunning?'var(--blue)':'var(--gray-mid)';}
+  const tp=document.querySelector('.timer-panel');
+  if(tp){if(s<=5&&s>0){tp.style.borderColor='rgba(239,68,68,.35)';}else{tp.style.borderColor='var(--gray-border)';}}
+}
+// ── FIREBASE ───────────────────────────────────
+GREF.on('value',snap=>{
+  const d=snap.val();if(!d)return;
+
+  // ── RESET DETECTION ─────────────────────────
+  if(prevVer!==null&&d.version!==prevVer){
+    hasBet=false;hasAns=false;myBet=0;lastResTs=0;prevMoney=null;
+    const teams=Array.isArray(d.teams)?d.teams:[];
+    const DID=localStorage.getItem('LAS_DID')||'';
+    const stillAssigned=teams.some(t=>t.deviceId===DID&&t.name===myName);
+    if(!stillAssigned&&d.phase!=='lobby'){
+      localStorage.removeItem('LAS_TEAM');
+      if(d.phase==='spin'){location.href='index.html';return;}
+      myName='';
+      document.getElementById('team-name').textContent='RESET';
+      document.getElementById('team-money').textContent='$—';
+    }
+  }
+  prevVer=d.version;
+
+  if(prevPhase&&prevPhase!=='betting'&&d.phase==='betting'){hasBet=false;hasAns=false;myBet=0;}
+  if(d.phase==='result'&&prevPhase==='answering'){hasAns=false;}
+  prevPhase=d.phase;
+  ST=d;
+  renderAll(ST);
+});
+
+function renderAll(st){
+  if(st.announcement)showAnn(st.announcement);
+  setPhasebar(st.phase);
+  updatePhaseInd(st);
+  // Toggle betting overlay banner
+  const bettingOv=document.getElementById('betting-overlay');
+  if(bettingOv){bettingOv.classList.toggle('active',st.phase==='betting');}
+  // Find my team
+  const teams=Array.isArray(st.teams)?st.teams:[];
+  const myIdx=teams.findIndex(t=>t.name===myName);
+  const myTeam=myIdx>=0?teams[myIdx]:null;
+  const tc=TEAM_COLORS[myIdx>=0?myIdx%TEAM_COLORS.length:0];
+  // Update header + spotlight if active team
+  const hdr=document.querySelector('.hdr');
+  if(hdr){hdr.classList.toggle('active-spotlight',st.phase==='answering'&&st.activeTeam===myName);}
+  if(myTeam){
+    document.getElementById('team-name').textContent=myTeam.name.toUpperCase();
+    document.getElementById('team-name').style.color=tc;
+    if(prevMoney!==null&&myTeam.money!==prevMoney){
+      const diff=myTeam.money-prevMoney;
+      moneyPop(Math.abs(diff),diff>0);
+      flash(diff>0?'g':'r');
+    }
+    prevMoney=myTeam.money;
+    document.getElementById('team-money').textContent=$m(myTeam.money);
+    document.getElementById('team-stats').textContent='W: '+(myTeam.wins||0)+' · L: '+(myTeam.losses||0);
+  }
+  renderTimer(st);
+  renderMain(st,myTeam,tc);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// renderMain — strict phase-gated renderer
+//
+// SECURITY CONTRACT:
+//   phase === 'betting'  → question text + options NEVER enter the DOM.
+//                          Only the bet panel is rendered.
+//   phase === 'answering'/'result' → question + options are rendered.
+//
+// This is enforced in JS logic, not CSS. Even if someone opens
+// DevTools and inspects the DOM during betting, they will find
+// zero question content — it simply does not exist in the page.
+// ═══════════════════════════════════════════════════════════════
+function renderMain(st, myTeam, tc) {
+  const phase     = st.phase;
+  const mc        = document.getElementById('main-content');
+  const isActive  = st.activeTeam === myName;
+  const myBetAmt  = (st.bets && st.bets[myName]) ? parseInt(st.bets[myName]) : 0;
+
+  // ── PHASE: lobby / spin ──────────────────────────────────────
+  // Nothing game-related to show yet.
+  if (phase === 'lobby' || phase === 'spin') {
+    mc.innerHTML = `
+      <div class="waiting-card">
+        <div class="waiting-icon">📡</div>
+        <div class="waiting-txt">Show Starting Soon</div>
+        <div style="font-size:14px;font-weight:500;color:var(--gray-mid)">Admin is setting up the game</div>
+      </div>`;
+    return;
+  }
+
+  // ── PHASE: reveal (winner screen) ───────────────────────────
+  if (phase === 'reveal') {
+    const w = st.winner;
+    mc.innerHTML = `
+      <div id="winner-panel">
+        <div class="w-trophy">🏆</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:4px;color:var(--blue);text-transform:uppercase">Champion</div>
+        <div style="font-size:clamp(36px,9vw,64px);font-weight:800;color:var(--black);letter-spacing:-1px">${esc(w ? w.name.toUpperCase() : 'WINNER')}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:28px;color:var(--gold-deep)">${w ? $m(w.money) : ''}</div>
+        ${w && w.name === myName ? '<div style="font-size:28px;font-weight:800;color:var(--blue);margin-top:8px">🎉 That\'s You!</div>' : ''}
+      </div>`;
+    return;
+  }
+
+  // ── PHASE: betting ───────────────────────────────────────────
+  // SECURITY: question text and options are COMPLETELY withheld.
+  // The question object (st.questions[qi]) is intentionally never
+  // read or written to the DOM here. No hidden divs. No data-*
+  // attributes. Nothing. DOM is clean of question content.
+  if (phase === 'betting') {
+    renderBettingPhase(st, myTeam, tc, myBetAmt);
+    return; // hard return — nothing below executes for betting
+  }
+
+  // ── PHASE: answering | result ────────────────────────────────
+  // Only now do we pull the question from state and render it.
+  renderQuestionPhase(st, myTeam, tc, isActive, myBetAmt);
+}
+
+// ─────────────────────────────────────────────────────────────
+// renderBettingPhase
+// Called ONLY during phase === 'betting'.
+// Renders the bet panel + a placeholder card.
+// Question is never touched.
+// ─────────────────────────────────────────────────────────────
+function renderBettingPhase(st, myTeam, tc, myBetAmt) {
+  const mc  = document.getElementById('main-content');
+  const bal = myTeam ? myTeam.money : 10000;
+  let html  = '';
+
+  // ── Betting-in-progress placeholder card ──
+  // This replaces the question card entirely. No question data.
+  html += `
+    <div class="q-card ph-betting" style="text-align:center;padding:28px 20px">
+      <div style="font-size:38px;margin-bottom:10px">💰</div>
+      <div style="font-size:13px;font-weight:800;letter-spacing:3px;color:var(--gold-deep);text-transform:uppercase;margin-bottom:6px">Betting In Progress</div>
+      <div style="font-size:14px;font-weight:500;color:var(--gray-mid)">Place your bet below.<br>Question reveals after betting closes.</div>
+    </div>`;
+
+  // ── Bet panel ──
+  if (hasBet || myBetAmt > 0) {
+    // Bet already submitted — show confirmation
+    html += `
+      <div class="bet-panel">
+        <div class="bet-submitted">
+          <span style="font-size:28px">✅</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--green);text-transform:uppercase">Bet Placed!</div>
+            <div style="font-family:'DM Mono',monospace;font-weight:500;font-size:22px;color:var(--gold-deep)">${$m(myBetAmt)}</div>
+            <div style="font-size:13px;font-weight:500;color:var(--gray-mid)">Waiting for admin to close betting...</div>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    // Bet not yet placed — show full bet input UI
+    html += `
+      <div class="bet-panel">
+        <div class="bet-ttl">💰 Place Your Bet — Balance: ${$m(bal)}</div>
+        <div class="bet-presets" id="bet-presets">
+          <div class="bet-preset" data-pct="0.1">10%</div>
+          <div class="bet-preset" data-pct="0.25">25%</div>
+          <div class="bet-preset" data-pct="0.5">50%</div>
+          <div class="bet-preset" data-pct="0.75">75%</div>
+          <div class="bet-preset" data-pct="1">ALL IN</div>
+          <div class="bet-preset" data-fixed="500">₹500</div>
+        </div>
+        <div class="bet-input-row">
+          <input class="bet-input" type="number" id="bet-val"
+            placeholder="${Math.floor(bal * 0.25)}" min="1" max="${bal}">
+        </div>
+        <div class="bet-err" id="bet-err"></div>
+        <button class="btn btn-gold btn-full" id="btn-bet">💰 Place Bet</button>
+      </div>`;
+  }
+
+  mc.innerHTML = html;
+
+  // ── Wire bet inputs ──────────────────────────────────────────
+  if (!hasBet && !myBetAmt) {
+    document.querySelectorAll('.bet-preset').forEach(p => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.bet-preset').forEach(x => x.classList.remove('on'));
+        p.classList.add('on');
+        const pct   = parseFloat(p.dataset.pct);
+        const fixed = parseInt(p.dataset.fixed);
+        const val   = !isNaN(pct) ? Math.floor(bal * pct) : (!isNaN(fixed) ? Math.min(fixed, bal) : 0);
+        const inp   = document.getElementById('bet-val');
+        if (inp) inp.value = val;
+      });
+    });
+
+    const btnBet = document.getElementById('btn-bet');
+    if (btnBet) {
+      btnBet.addEventListener('click', () => {
+        const inp = document.getElementById('bet-val');
+        if (!inp) return;
+        const v   = parseInt(inp.value);
+        const err = document.getElementById('bet-err');
+        if (isNaN(v) || v < 1)  { err.textContent = 'Enter a valid amount!';  return; }
+        if (v > bal)             { err.textContent = 'Bet exceeds your balance!'; return; }
+        if (!myName)             { err.textContent = 'No team assigned!'; return; }
+        const newBets = Object.assign({}, ST.bets || {});
+        newBets[myName] = v;
+        GREF.update({ bets: newBets });
+        hasBet = true; myBet = v;
+        btnBet.disabled = true;
+        if (err) err.textContent = '';
+        renderBettingPhase(ST, myTeam, tc, v); // re-render to show confirmation
+      });
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// renderQuestionPhase
+// Called ONLY during phase === 'answering' or phase === 'result'.
+// This is the FIRST and ONLY place question content enters the DOM.
+// ─────────────────────────────────────────────────────────────
+function renderQuestionPhase(st, myTeam, tc, isActive, myBetAmt) {
+  const phase = st.phase;
+  const mc    = document.getElementById('main-content');
+  const qs    = Array.isArray(st.questions) ? st.questions : [];
+  const qi    = st.currentQuestionIndex;
+  const q     = (qi >= 0 && qs[qi]) ? qs[qi] : null;
+  let html    = '';
+
+  // ── Question card (question text + options) ──────────────────
+  html += `<div class="q-card ph-${phase}">`;
+  if (q) {
+    html += `<div class="q-num">Question ${qi + 1}</div>`;
+    html += `<div class="q-text">${esc(q.text)}</div>`;
+    // Options list
+    html += `<div class="opts-list">`;
+    q.options.forEach((o, i) => {
+      let cl = 'qopt';
+      if (phase === 'result') {
+        if (i === q.correct)                             cl += ' cr';
+        else if (i === st.selectedAnswer && i !== q.correct) cl += ' wr';
+      } else if (phase === 'answering' && st.selectedAnswer === i) {
+        cl += ' sel';
+      }
+      const disabled = (!isActive || hasAns || phase !== 'answering') ? 'disabled' : '';
+      html += `<button class="${cl}" data-ans="${i}" ${disabled}
+        style="animation-delay:${i * 0.06}s">
+        <span class="oltr">${'ABCD'[i]}</span>${esc(o)}
+      </button>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="q-num">Waiting</div>
+             <div class="q-text" style="color:var(--gray-mid)">Admin is selecting a question...</div>`;
+  }
+  html += `</div>`;
+
+  // ── Answering panel ──────────────────────────────────────────
+  if (phase === 'answering') {
+    if (hasAns || (st.selectedAnswer !== null && st.selectedAnswer !== undefined)) {
+      const ltr = (st.selectedAnswer !== null && st.selectedAnswer !== undefined)
+        ? 'ABCD'[st.selectedAnswer] : '?';
+      html += `
+        <div class="ans-panel">
+          <div class="ans-ttl">Answer Submitted</div>
+          <div class="bet-submitted">
+            <span style="font-size:24px">📝</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--blue);text-transform:uppercase">Submitted [${ltr}]</div>
+              <div style="font-size:14px;font-weight:500;color:var(--gray-mid);margin-top:4px">Waiting for admin to judge...</div>
+            </div>
+          </div>
+        </div>`;
+    } else if (isActive) {
+      html += `
+        <div class="ans-panel">
+          <div class="ans-ttl">⚡ Your Turn — Select an Answer Above</div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-mid);padding:8px 0">
+            Tap an option to submit. You can only answer once.
+          </div>
+        </div>`;
+    } else {
+      html += `
+        <div class="ans-panel">
+          <div class="locked-msg">
+            <div class="icon">🔒</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gray-mid);text-transform:uppercase">
+              ${st.activeTeam ? esc(st.activeTeam) + ' is Answering' : 'Waiting for Active Team'}
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Result panel ─────────────────────────────────────────────
+  if (phase === 'result' && st.lastResult) {
+    const res     = st.lastResult;
+    const isMe    = res.teamName === myName;
+    const correct = res.correct;
+    if (isMe) {
+      html += `
+        <div class="result-banner ${correct ? 'win' : 'lose'}">
+          <div class="result-verdict" style="color:${correct ? 'var(--green)' : 'var(--red)'}">
+            ${correct ? '✅ Correct!' : '❌ Wrong!'}
+          </div>
+          <div class="result-money" style="color:${correct ? 'var(--green)' : 'var(--red)'}">
+            ${correct ? '+' : '-'}${$m(res.betAmount)}
+          </div>
+          <div style="font-size:14px;font-weight:500;color:var(--gray-mid);margin-top:8px">
+            ${res.timeout ? 'Time ran out!' : correct ? 'Great answer!' : 'Better luck next round!'}
+          </div>
+        </div>`;
+    } else {
+      html += `
+        <div class="result-banner ${correct ? 'win' : 'lose'}" style="opacity:.7">
+          <div style="font-size:13px;font-weight:700;letter-spacing:1px;color:var(--gray-mid);text-transform:uppercase">
+            ${esc(res.teamName)} ${correct ? 'Correct ✅' : 'Wrong ❌'}
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:${correct ? 'var(--green)' : 'var(--red)'};">
+            ${correct ? '+' : '-'}${$m(res.betAmount)}
+          </div>
+        </div>`;
+    }
+  }
+
+  mc.innerHTML = html;
+
+  // ── Wire answer buttons ──────────────────────────────────────
+  if (phase === 'answering' && isActive && !hasAns) {
+    document.querySelectorAll('[data-ans]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (hasAns) return;
+        const idx = parseInt(btn.dataset.ans);
+        GREF.update({ selectedAnswer: idx });
+        hasAns = true;
+        document.querySelectorAll('[data-ans]').forEach(b => {
+          b.disabled = true;
+          b.classList.remove('sel');
+        });
+        btn.classList.add('sel');
+        renderQuestionPhase(ST, myTeam, tc, isActive, myBetAmt);
+      });
+    });
+  }
+}
+
+// ── LIVE TIMER INTERVAL ──────────────────────────
+setInterval(()=>{if(ST&&ST.timerRunning)renderTimer(ST);},350);
+function handleContact(type) {
+  let message = '';
+  let link = '';
+
+  if (type === 'insta') {
+    message = 'Instagram: @code_to_company';
+    link = 'https://instagram.com/code_to_company';
+  }
+
+  if (type === 'mail') {
+    message = 'Email: codetocompany8@gmail.com';
+    link = 'mailto:codetocompany8@gmail.com';
+  }
+
+  if (type === 'phone') {
+    message = 'Phone: 8438755662';
+    link = 'tel:8438755662';
+  }
+
+  if (link) window.open(link, '_blank');
+}
+
+// ═══════════════════════════════════════════════
+// BROADCAST POPUP OVERLAY — shows admin messages as large modal
+// ═══════════════════════════════════════════════
+(function() {
+  // Create modal element once
+  const modal = document.createElement('div');
+  modal.id = 'broadcast-modal';
+  modal.style.cssText = `
+    display:none; position:fixed; inset:0; z-index:9500;
+    background:rgba(20,40,80,0.72); backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    align-items:center; justify-content:center;
+    animation:bcfadein .35s ease both;
+  `;
+  modal.innerHTML = `
+    <div id="broadcast-box" style="
+      background:#fff; border-radius:16px; padding:40px 36px;
+      max-width:min(520px,88vw); text-align:center;
+      box-shadow:0 16px 56px rgba(10,30,80,.28);
+      border-top:5px solid var(--gold);
+      animation:bcpopin .4s cubic-bezier(.22,1,.36,1) both;
+    ">
+      <div style="font-size:11px;font-weight:700;letter-spacing:4px;color:var(--gold-deep);text-transform:uppercase;margin-bottom:18px;">📢 ANNOUNCEMENT</div>
+      <div id="broadcast-text" style="font-size:clamp(20px,5vw,30px);font-weight:800;color:var(--black);line-height:1.4;letter-spacing:-.3px;"></div>
+      <div style="margin-top:22px;font-size:11px;color:var(--gray-mid);font-weight:600;letter-spacing:1px;">Auto-closing in <span id="bc-countdown">5</span>s</div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Add keyframes
+  const sty = document.createElement('style');
+  sty.textContent = `
+    @keyframes bcfadein{from{opacity:0}to{opacity:1}}
+    @keyframes bcpopin{from{opacity:0;transform:scale(.85) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    @keyframes bcfadeout{to{opacity:0;transform:scale(.92)}}
+  `;
+  document.head.appendChild(sty);
+
+  let bcTimer = null, bcCountdown = null, lastAnn = '';
+
+  window._showBroadcastModal = function(msg) {
+    if (!msg || msg === lastAnn) return;
+    lastAnn = msg;
+    clearTimeout(bcTimer); clearInterval(bcCountdown);
+    document.getElementById('broadcast-text').textContent = msg;
+    let secs = 5;
+    document.getElementById('bc-countdown').textContent = secs;
+    modal.style.display = 'flex';
+    bcCountdown = setInterval(() => {
+      secs--;
+      const el = document.getElementById('bc-countdown');
+      if (el) el.textContent = secs;
+      if (secs <= 0) { clearInterval(bcCountdown); }
+    }, 1000);
+    bcTimer = setTimeout(() => {
+      modal.style.animation = 'bcfadeout .3s ease both forwards';
+      setTimeout(() => { modal.style.display = 'none'; modal.style.animation = 'bcfadein .35s ease both'; }, 320);
+    }, 5500);
+  };
+
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      clearTimeout(bcTimer); clearInterval(bcCountdown);
+      modal.style.display = 'none';
+    }
+  });
+})();
+
+// ═══════════════════════════════════════════════
+// NAVIGATION VIOLATION DETECTION
+// Detects tab switch / app switch during betting or answering
+// and sends a violation signal to Firebase
+// ═══════════════════════════════════════════════
+(function() {
+  let violationCooldown = false; // prevent spam
+
+  /* Create warning popup on team screen */
+  const warnDiv = document.createElement('div');
+  warnDiv.id = 'nav-warn';
+  warnDiv.style.cssText = `
+    display:none; position:fixed; top:60px; left:50%; transform:translateX(-50%);
+    z-mail:9600; background:#dc2626; color:#fff;
+    padding:12px 24px; border-radius:10px; font-size:14px; font-weight:700;
+    box-shadow:0 4px 20px rgba(220,38,38,.5); letter-spacing:.5px;
+    text-align:center; max-width:90vw;
+  `;
+  warnDiv.textContent = '⚠️ Navigation Violation Detected! Stay on this page during the game.';
+  document.body.appendChild(warnDiv);
+  let warnTimer = null;
+
+  function showTeamWarning() {
+    warnDiv.style.display = 'block';
+    clearTimeout(warnTimer);
+    warnTimer = setTimeout(() => { warnDiv.style.display = 'none'; }, 5000);
+  }
+
+  function isRestrictedPhase() {
+    return ST && (ST.phase === 'betting' || ST.phase === 'answering');
+  }
+
+  function reportViolation() {
+    if (!myName || !isRestrictedPhase()) return;
+    if (violationCooldown) return;
+    violationCooldown = true;
+    setTimeout(() => { violationCooldown = false; }, 8000);
+
+    // Write violation to Firebase under gameState/violations/<teamName>
+    const violRef = DB.ref('gameState/violations/' + myName.replace(/[.#$[\]]/g, '_'));
+    violRef.set({
+      teamName: myName,
+      time: new Date().toISOString(),
+      phase: ST.phase,
+      timestamp: Date.now(),
+      message: 'Navigation Violation Detected'
+    });
+
+    showTeamWarning();
+  }
+
+  // Detect tab/window switching
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) reportViolation();
+  });
+
+  // Detect window blur (app switch, alt-tab, etc.)
+  window.addEventListener('blur', () => {
+    reportViolation();
+  });
+
+  // Intercept beforeunload during restricted phases
+  window.addEventListener('beforeunload', (e) => {
+    if (isRestrictedPhase()) {
+      e.preventDefault();
+      e.returnValue = 'You are in the middle of a game. Are you sure you want to leave?';
+      reportViolation();
+    }
+  });
+})();
+
+// Broadcast modal is now integrated into showAnn above
+
+</script>
+</body>
+</html>
